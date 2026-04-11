@@ -56,52 +56,6 @@
         .sub-status {
             font-size: 14px;
             color: #6c757d;
-            margin-bottom: 20px;
-        }
-        
-        .success-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
-        
-        .location-link {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 20px 0;
-            word-break: break-all;
-            font-size: 12px;
-            color: #495057;
-            direction: ltr;
-            text-align: left;
-        }
-        
-        .btn {
-            display: inline-block;
-            padding: 15px 30px;
-            background: #28a745;
-            color: white;
-            text-decoration: none;
-            border-radius: 10px;
-            font-weight: bold;
-            margin: 10px 5px;
-            transition: all 0.3s;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        
-        .btn:hover {
-            background: #218838;
-            transform: translateY(-2px);
-        }
-        
-        .btn-secondary {
-            background: #6c757d;
-        }
-        
-        .btn-secondary:hover {
-            background: #5a6268;
         }
 
         .error-box {
@@ -112,16 +66,24 @@
             margin: 20px 0;
         }
 
-        .coords-display {
-            background: #d4edda;
-            padding: 15px;
+        .btn {
+            display: inline-block;
+            padding: 15px 30px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
             border-radius: 10px;
-            margin: 15px 0;
-            font-size: 16px;
             font-weight: bold;
-            color: #155724;
-            direction: ltr;
-            text-align: center;
+            margin-top: 20px;
+            transition: all 0.3s;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
         }
     </style>
 </head>
@@ -130,139 +92,87 @@
         <div id="loading">
             <div class="spinner"></div>
             <div class="status">جاري تحديد موقعك...</div>
-            <div class="sub-status">الرجاء السماح بالوصول للموقع</div>
-        </div>
-        
-        <div id="success" style="display: none;">
-            <div class="success-icon">✅</div>
-            <div class="status">تم تحديد الموقع بنجاح!</div>
-            
-            <div class="coords-display" id="coordsDisplay"></div>
-            
-            <div class="location-link" id="locationLink"></div>
-            
-            <button class="btn" onclick="copyLink()">📋 نسخ اللينك</button>
-            <button class="btn btn-secondary" onclick="getLocation()">🔄 تحديث الموقع</button>
+            <div class="sub-status">الرجاء السماح بالوصول للموقع<br>ثم الانتظار قليلاً</div>
         </div>
         
         <div id="error" style="display: none;">
-            <div class="success-icon">❌</div>
+            <div style="font-size: 60px; margin-bottom: 20px;">❌</div>
             <div class="status">حدث خطأ</div>
             <div class="error-box" id="errorMessage"></div>
-            <button class="btn btn-secondary" onclick="getLocation()">🔄 حاول مرة أخرى</button>
+            <button class="btn" onclick="location.reload()">🔄 حاول مرة أخرى</button>
         </div>
     </div>
 
     <script>
-        let currentLink = '';
+        // ========================================
+        // ضع هنا معلومات Google Form الخاص بك
+        // ========================================
+        
+        // لينك الفورم الأساسي (نسخه من المتصفح)
+        const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSceQG8YNNURsfxMkEYPKjSpxHKTkAGrbttYwSdW6o2jO_vXoA/viewform?usp=header';
+        
+        // Entry ID للحقل اللي عايز تملاه (هتلاقيه في inspect element)
+        // مثال: entry.123456789
+        const LOCATION_FIELD_ENTRY = 'entry.1722461871';
+        
+        // ========================================
 
-        // بدء الحصول على الموقع فور فتح الصفحة
         window.onload = function() {
             getLocation();
         };
 
         function getLocation() {
-            // إخفاء كل الأقسام وإظهار Loading
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('success').style.display = 'none';
-            document.getElementById('error').style.display = 'none';
-
             if (!navigator.geolocation) {
                 showError('المتصفح لا يدعم تحديد الموقع');
                 return;
             }
 
-            // إعدادات للحصول على أعلى دقة ممكنة
             const options = {
-                enableHighAccuracy: true,  // استخدام GPS بدقة عالية
-                timeout: 15000,            // 15 ثانية timeout
-                maximumAge: 0              // عدم استخدام موقع قديم محفوظ
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0
             };
 
             navigator.geolocation.getCurrentPosition(
                 function(position) {
-                    const lat = position.coords.latitude;
-                    const lng = position.coords.longitude;
-                    const accuracy = position.coords.accuracy;
+                    const lat = position.coords.latitude.toFixed(8);
+                    const lng = position.coords.longitude.toFixed(8);
                     
                     // إنشاء لينك Google Maps
                     const mapsLink = `https://www.google.com/maps?q=${lat},${lng}`;
-                    currentLink = mapsLink;
                     
-                    // عرض النتيجة
-                    document.getElementById('coordsDisplay').textContent = 
-                        `${lat.toFixed(8)}, ${lng.toFixed(8)}`;
+                    // إنشاء لينك الفورم المملوء مسبقاً
+                    const prefilledFormUrl = `${FORM_URL}?${LOCATION_FIELD_ENTRY}=${encodeURIComponent(mapsLink)}`;
                     
-                    document.getElementById('locationLink').textContent = mapsLink;
-                    
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('success').style.display = 'block';
-                    
-                    // نسخ اللينك تلقائيًا
-                    copyToClipboard(mapsLink);
+                    // الانتقال تلقائياً للفورم المملوء
+                    window.location.href = prefilledFormUrl;
                 },
                 function(error) {
                     let errorMsg = '';
                     switch(error.code) {
                         case error.PERMISSION_DENIED:
-                            errorMsg = 'تم رفض الإذن. الرجاء السماح بالوصول للموقع من إعدادات المتصفح.';
+                            errorMsg = 'تم رفض الإذن بالوصول للموقع.\n\nللسماح بالوصول:\n١. اضغط على أيقونة القفل 🔒 بجوار عنوان الصفحة\n٢. اختر "السماح" للموقع\n٣. أعد تحميل الصفحة';
                             break;
                         case error.POSITION_UNAVAILABLE:
-                            errorMsg = 'معلومات الموقع غير متاحة. تأكد من تفعيل GPS.';
+                            errorMsg = 'معلومات الموقع غير متاحة.\n\nتأكد من:\n١. تفعيل GPS في الموبايل\n٢. وجود اتصال بالإنترنت';
                             break;
                         case error.TIMEOUT:
-                            errorMsg = 'انتهت مهلة الطلب. تأكد من الاتصال بالإنترنت و GPS.';
+                            errorMsg = 'انتهت مهلة الطلب.\n\nجرب:\n١. الوقوف في مكان مفتوح\n٢. إعادة المحاولة';
                             break;
                         default:
-                            errorMsg = 'حدث خطأ غير معروف.';
+                            errorMsg = 'حدث خطأ غير معروف';
                     }
                     showError(errorMsg);
-                },
+                }
                 options
             );
         }
 
         function showError(message) {
             document.getElementById('loading').style.display = 'none';
-            document.getElementById('success').style.display = 'none';
             document.getElementById('error').style.display = 'block';
             document.getElementById('errorMessage').textContent = message;
-        }
-
-        function copyLink() {
-            if (currentLink) {
-                copyToClipboard(currentLink);
-            }
-        }
-        function copyToClipboard(text) {
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(text).then(() => {
-                    alert('✅ تم نسخ اللينك بنجاح!');
-                }).catch(() => {
-                    fallbackCopy(text);
-                });
-            } else {
-                fallbackCopy(text);
-            }
-        }
-
-        function fallbackCopy(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            textArea.style.position = 'fixed';
-            textArea.style.left = '-9999px';
-            document.body.appendChild(textArea);
-            textArea.focus();
-            textArea.select();
-            
-            try {
-                document.execCommand('copy');
-                alert('✅ تم نسخ اللينك بنجاح!');
-            } catch (err) {
-                alert('⚠️ لم يتم النسخ. انسخ اللينك يدويًا.');
-            }
-            
-            document.body.removeChild(textArea);
+            document.getElementById('errorMessage').style.whiteSpace = 'pre-line';
         }
     </script>
 </body>

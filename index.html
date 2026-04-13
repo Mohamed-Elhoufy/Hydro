@@ -1,668 +1,240 @@
 <!DOCTYPE html>
-
 <html lang="ar" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تسجيل قياسات الشبكة</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-<style>
-* {
-margin: 0;
-padding: 0;
-box-sizing: border-box;
-}
-
-    body {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        min-height: 100vh;
-        padding: 20px;
-        direction: rtl;
-    }
-
-    .container {
-        max-width: 600px;
-        margin: 0 auto;
-    }
-
-    .header {
-        text-align: center;
-        color: white;
-        margin-bottom: 30px;
-    }
-
-    .header h1 {
-        font-size: 28px;
-        margin-bottom: 10px;
-    }
-
-    .header p {
-        font-size: 14px;
-        opacity: 0.9;
-    }
-
-    .card {
-        background: white;
-        border-radius: 15px;
-        padding: 20px;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
-
-    .option-btn {
-        width: 100%;
-        padding: 15px;
-        margin-bottom: 15px;
-        border: 2px solid #667eea;
-        background: white;
-        color: #667eea;
-        border-radius: 10px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 10px;
-    }
-
-    .option-btn:hover {
-        background: #667eea;
-        color: white;
-        transform: translateY(-2px);
-    }
-
-    .option-btn.active {
-        background: #667eea;
-        color: white;
-    }
-
-    .content-section {
-        display: none;
-        animation: fadeIn 0.3s;
-    }
-
-    .content-section.active {
-        display: block;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .location-item {
-        padding: 15px;
-        border: 1px solid #e0e0e0;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .location-item:hover {
-        background: #f5f5f5;
-        border-color: #667eea;
-    }
-
-    .location-item.selected {
-        background: #f0f4ff;
-        border-color: #667eea;
-        border-width: 2px;
-    }
-
-    .location-name {
-        font-weight: bold;
-        font-size: 16px;
-        color: #333;
-        margin-bottom: 5px;
-    }
-
-    .location-coords {
-        font-size: 12px;
-        color: #666;
-        display: none;
-    }
-
-    .location-item.selected .location-coords {
-        display: block;
-    }
-
-    .action-buttons {
-        display: none;
-        margin-top: 15px;
-        gap: 10px;
-    }
-
-    .location-item.selected .action-buttons {
-        display: flex;
-    }
-
-    .btn {
-        flex: 1;
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s;
-    }
-
-    .btn-maps {
-        background: #34a853;
-        color: white;
-    }
-
-    .btn-maps:hover {
-        background: #2d8e47;
-    }
-
-    .btn-form {
-        background: #667eea;
-        color: white;
-    }
-
-    .btn-form:hover {
-        background: #5568d3;
-    }
-
-    .input-group {
-        margin-bottom: 15px;
-    }
-
-    .input-group label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: bold;
-        color: #333;
-    }
-
-    .input-group input {
-        width: 100%;
-        padding: 12px;
-        border: 2px solid #e0e0e0;
-        border-radius: 8px;
-        font-size: 14px;
-        transition: border-color 0.3s;
-    }
-
-    .input-group input:focus {
-        outline: none;
-        border-color: #667eea;
-    }
-
-    #map {
-        height: 400px;
-        border-radius: 10px;
-        margin-bottom: 15px;
-    }
-
-    .coords-display {
-        background: #f5f5f5;
-        padding: 10px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-        font-size: 14px;
-        text-align: center;
-        color: #666;
-    }
-
-    .loading {
-        text-align: center;
-        padding: 20px;
-        color: #666;
-    }
-
-    .error {
-        background: #ffebee;
-        color: #c62828;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-    }
-
-    .success {
-        background: #e8f5e9;
-        color: #2e7d32;
-        padding: 15px;
-        border-radius: 8px;
-        margin-bottom: 15px;
-    }
-
-    .back-btn {
-        background: #f5f5f5;
-        color: #666;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        cursor: pointer;
-        margin-bottom: 15px;
-        font-size: 14px;
-    }
-
-    .back-btn:hover {
-        background: #e0e0e0;
-    }
-
-    .modal {
-        display: none;
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.5);
-        z-index: 9999;
-        justify-content: center;
-        align-items: center;
-    }
-
-    .modal.active {
-        display: flex;
-    }
-
-    .modal-content {
-        background: white;
-        padding: 30px;
-        border-radius: 15px;
-        max-width: 400px;
-        text-align: center;
-    }
-
-    .modal-content h3 {
-        margin-bottom: 20px;
-        color: #333;
-    }
-
-    .modal-buttons {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-    }
-
-    .modal-btn {
-        flex: 1;
-        padding: 12px;
-        border: none;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-
-    .modal-btn-yes {
-        background: #667eea;
-        color: white;
-    }
-
-    .modal-btn-no {
-        background: #f5f5f5;
-        color: #666;
-    }
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل قياسات الشبكة</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; direction: rtl; }
+        .container { max-width: 600px; margin: 0 auto; }
+        .header { text-align: center; color: white; margin-bottom: 30px; }
+        .card { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .option-btn { width: 100%; padding: 15px; margin-bottom: 15px; border: 2px solid #667eea; background: white; color: #667eea; border-radius: 10px; font-size: 16px; font-weight: bold; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .option-btn:hover, .option-btn.active { background: #667eea; color: white; }
+        .content-section { display: none; animation: fadeIn 0.3s; }
+        .content-section.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .location-item { padding: 15px; border: 1px solid #e0e0e0; border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: all 0.3s; position: relative; }
+        .location-item:hover { background: #f5f5f5; border-color: #667eea; }
+        .location-item.selected { background: #f0f4ff; border-color: #667eea; border-width: 2px; }
+        .location-name { font-weight: bold; font-size: 16px; color: #333; display: flex; align-items: center; gap: 8px; }
+        .check-mark { color: #34a853; font-size: 18px; font-weight: bold; display: none; }
+        .location-item.measured .check-mark { display: inline; }
+        .asset-info { font-size: 13px; color: #666; margin-top: 5px; background: #f8f9fa; padding: 5px 10px; border-radius: 6px; display: inline-flex; gap: 10px; border: 1px solid #eee; }
+        .info-tag { font-weight: 600; color: #444; }
+        .location-coords { font-size: 11px; color: #999; display: none; margin-top: 5px; }
+        .location-item.selected .location-coords { display: block; }
+        .action-buttons { display: none; margin-top: 15px; gap: 10px; }
+        .location-item.selected .action-buttons { display: flex; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .btn-maps { background: #34a853; color: white; }
+        .btn-form { background: #667eea; color: white; }
+        .input-group { margin-bottom: 15px; }
+        .input-group label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        .input-group input { width: 100%; padding: 12px; border: 2px solid #e0e0e0; border-radius: 8px; font-size: 14px; }
+        #map { height: 400px; border-radius: 10px; margin-bottom: 15px; width: 100%; background: #f0f0f0; }
+        .coords-display { background: #f5f5f5; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 14px; text-align: center; color: #666; }
+        .back-btn { background: #f5f5f5; color: #666; padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; margin-bottom: 15px; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; padding: 30px; border-radius: 15px; text-align: center; max-width: 400px; width: 90%; }
+    </style>
 </head>
 <body>
-<div class="container">
-<div class="header">
-<h1>📊 تسجيل قياسات الشبكة</h1>
-<p>اختر طريقة تحديد الموقع</p>
-</div>
+    <div class="container">
+        <div class="header">
+            <h1>📊 تسجيل قياسات الشبكة</h1>
+            <p>اختر طريقة تحديد الموقع</p>
+        </div>
 
-    <div class="card">
-        <button class="option-btn" onclick="showSection('saved')">
-            📋 المواقع المحفوظة
-        </button>
-        <button class="option-btn" onclick="showSection('gps')">
-            📍 استخدام الموقع الحالي (GPS)
-        </button>
-        <button class="option-btn" onclick="showSection('map')">
-            🗺️ اختيار موقع من الخريطة
-        </button>
-    </div>
-
-    <div id="saved-section" class="content-section">
         <div class="card">
-            <button class="back-btn" onclick="showSection(null)">← رجوع</button>
-            <h2 style="margin-bottom: 15px;">المواقع المحفوظة</h2>
-            <div id="locations-container">
-                <div class="loading">جاري تحميل المواقع...</div>
+            <button class="option-btn" onclick="showSection('saved')">📋 المواقع المحفوظة</button>
+            <button class="option-btn" onclick="showSection('gps')">📍 استخدام الموقع الحالي (GPS)</button>
+            <button class="option-btn" onclick="showSection('map')">🗺️ اختيار موقع من الخريطة</button>
+        </div>
+
+        <div id="saved-section" class="content-section">
+            <div class="card">
+                <button class="back-btn" onclick="showSection(null)">← رجوع</button>
+                <h2 style="margin-bottom: 15px;">المواقع المحفوظة</h2>
+                <div id="locations-container">جاري التحميل...</div>
             </div>
         </div>
-    </div>
 
-    <div id="gps-section" class="content-section">
-        <div class="card">
-            <button class="back-btn" onclick="showSection(null)">← رجوع</button>
-            <h2 style="margin-bottom: 15px;">الموقع الحالي (GPS)</h2>
-            <div id="gps-status"></div>
-            <button class="btn btn-form" style="width: 100%; margin-bottom: 15px;" onclick="getCurrentLocation()">
-                📍 تحديد موقعي الحالي
-            </button>
-            <div id="gps-result" style="display: none;">
-                <div class="coords-display" id="gps-coords"></div>
-                <div class="input-group">
-                    <label>اسم الموقع (اختياري)</label>
-                    <input type="text" id="gps-name" placeholder="أدخل اسم الموقع">
-                </div>
-                <div class="action-buttons" style="display: flex;">
-                    <button class="btn btn-maps" onclick="openMaps('gps')">🗺️ فتح في خرائط جوجل</button>
-                    <button class="btn btn-form" onclick="openForm('gps')">📊 تسجيل قياس</button>
+        <div id="gps-section" class="content-section">
+            <div class="card">
+                <button class="back-btn" onclick="showSection(null)">← رجوع</button>
+                <div id="gps-status"></div>
+                <button class="btn btn-form" style="width: 100%; margin-bottom: 15px;" onclick="getCurrentLocation()">📍 تحديد موقعي</button>
+                <div id="gps-result" style="display: none;">
+                    <div class="coords-display" id="gps-coords"></div>
+                    <div class="input-group"><label>اسم المكان (اختياري)</label><input type="text" id="gps-name" placeholder="مثال: بجوار المحول"></div>
+                    <div class="action-buttons" style="display:flex"><button class="btn btn-maps" onclick="openMaps('gps')">🗺️ خرائط جوجل</button><button class="btn btn-form" onclick="openForm('gps')">📊 تسجيل</button></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div id="map-section" class="content-section">
-        <div class="card">
-            <button class="back-btn" onclick="showSection(null)">← رجوع</button>
-            <h2 style="margin-bottom: 15px;">اختيار موقع من الخريطة</h2>
-            <div id="map"></div>
-            <div class="coords-display" id="map-coords">انقر على الخريطة أو اسحب العلامة</div>
-            <div class="input-group">
-                <label>اسم الموقع (اختياري)</label>
-                <input type="text" id="map-name" placeholder="أدخل اسم الموقع">
-            </div>
-            <div class="action-buttons" style="display: flex;">
-                <button class="btn btn-maps" onclick="openMaps('map')">🗺️ فتح في خرائط جوجل</button>
-                <button class="btn btn-form" onclick="openForm('map')">📊 تسجيل قياس</button>
+        <div id="map-section" class="content-section">
+            <div class="card">
+                <button class="back-btn" onclick="showSection(null)">← رجوع</button>
+                <div id="map"></div>
+                <div class="coords-display" id="map-coords"></div>
+                <div class="input-group"><label>اسم المكان (اختياري)</label><input type="text" id="map-name" placeholder="مثال: شارع الرئيسي"></div>
+                <div class="action-buttons" style="display:flex"><button class="btn btn-maps" onclick="openMaps('map')">🗺️ خرائط جوجل</button><button class="btn btn-form" onclick="openForm('map')">📊 تسجيل</button></div>
             </div>
         </div>
     </div>
-</div>
 
-<div id="confirmation-modal" class="modal">
-    <div class="modal-content">
-        <h3>تأكيد التسجيل</h3>
-        <p>هل تريد تسجيل القياس لهذا الموقع؟</p>
-        <div class="modal-buttons">
-            <button class="modal-btn modal-btn-yes" onclick="confirmForm()">نعم</button>
-            <button class="modal-btn modal-btn-no" onclick="closeModal()">إلغاء</button>
+    <div id="confirmation-modal" class="modal">
+        <div class="modal-content">
+            <h3>تأكيد الانتقال للنموذج</h3>
+            <p id="modal-info" style="margin-top:10px; color:#666; font-size:14px;"></p>
+            <div style="display:flex; gap:10px; margin-top:20px;">
+                <button class="btn btn-form" onclick="confirmForm()">تأكيد</button>
+                <button class="btn" style="background:#eee" onclick="closeModal()">إلغاء</button>
+            </div>
         </div>
     </div>
-</div>
 
-<script src="[https://unpkg.com/leaflet@1.9.4/dist/leaflet.js](https://unpkg.com/leaflet@1.9.4/dist/leaflet.js)"></script>
-<script>
-    // ========== CONFIGURATION ==========
-    const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVj648OXVdiG_IMMga925QI843xQnOlmrwCwcIC9bIgfiRs59OQZM2MoTjwYjJ3ce5wDD8uOh0vMOF/pub?output=csv';
-const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSceQG8YNNURsfxMkEYPKjSpxHKTkAGrbttYwSdW6o2jO_vXoA/viewform?usp=publish-editor';
-const FORM_LOCATION_FIELD = 'entry.1722461871';
-const FORM_NAME_FIELD = 'entry.103117482';
-const FORM_ASSET_FIELD = 'entry.880995171';
-    
-    // ========== STATE ==========
-    let locations = [];
-    let selectedLocationIndex = null;
-    let gpsCoords = null;
-    let mapCoords = null;
-    let map = null;
-    let marker = null;
-    let pendingFormData = null;
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // CONFIGURATION
+        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVj648OXVdiG_IMMga925QI843xQnOlmrwCwcIC9bIgfiRs59OQZM2MoTjwYjJ3ce5wDD8uOh0vMOF/pub?output=csv';
+        const FORM_BASE_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSceQG8YNNURsfxMkEYPKjSpxHKTkAGrbttYwSdW6o2jO_vXoA/viewform';
+        const FIELDS = { loc: 'entry.1722461871', name: 'entry.103117482', asset: 'entry.880995171' };
 
-    // ========== CSV PARSER ==========
-    function parseCSV(text) {
-        const rows = [];
-        let currentRow = [];
-        let currentField = '';
-        let inQuotes = false;
+        let locations = [], gpsCoords = null, mapCoords = null, map = null, marker = null, pendingData = null;
+        let measuredIds = JSON.parse(localStorage.getItem('measured_locations') || '[]');
 
-        for (let i = 0; i < text.length; i++) {
-            const char = text[i];
-            const nextChar = text[i + 1];
-
-            if (inQuotes) {
-                if (char === '"' && nextChar === '"') {
-                    currentField += '"';
-                    i++;
-                } else if (char === '"') {
-                    inQuotes = false;
-                } else {
-                    currentField += char;
-                }
-            } else {
-                if (char === '"') {
-                    inQuotes = true;
-                } else if (char === ',') {
-                    currentRow.push(currentField.trim());
-                    currentField = '';
-                } else if (char === '\n' || char === '\r') {
-                    if (currentField || currentRow.length > 0) {
-                        currentRow.push(currentField.trim());
-                        rows.push(currentRow);
-                        currentField = '';
-                        currentRow = [];
-                    }
-                    if (char === '\r' && nextChar === '\n') i++;
-                } else {
-                    currentField += char;
-                }
+        function parseCSV(text) {
+            const rows = []; let cur = '', inQ = false, row = [];
+            for (let i = 0; i < text.length; i++) {
+                let c = text[i], n = text[i+1];
+                if (inQ) { if (c==='"' && n==='"') { cur+='"'; i++; } else if (c==='"') inQ=false; else cur+=c; }
+                else { if (c==='"') inQ=true; else if (c===',') { row.push(cur.trim()); cur=''; } 
+                else if (c==='\n' || c==='\r') { if (cur !== '' || row.length > 0) { row.push(cur.trim()); rows.push(row); } row=[]; cur=''; if (c==='\r' && n==='\n') i++; }
+                else cur+=c; }
             }
+            if (row.length>0 || cur !== '') { row.push(cur.trim()); rows.push(row); }
+            return rows;
         }
-        if (currentField || currentRow.length > 0) {
-            currentRow.push(currentField.trim());
-            rows.push(currentRow);
+
+        async function loadLocations() {
+            try {
+                const res = await fetch(CSV_URL);
+                const data = parseCSV(await res.text());
+                const h = data[0];
+                locations = data.slice(1).map(r => {
+                    let o = {}; h.forEach((k, i) => o[k] = r[i] || "");
+                    return o;
+                }).filter(l => l.Lat && l.Long);
+                displayLocations();
+            } catch (e) { document.getElementById('locations-container').innerText = "خطأ في تحميل البيانات"; }
         }
-        return rows;
-    }
 
-    // ========== INITIALIZATION ==========
-    async function loadLocations() {
-        try {
-            const response = await fetch(CSV_URL);
-            const csvText = await response.text();
-            const data = parseCSV(csvText);
-            
-            if (data.length < 2) throw new Error("No data found");
-
-            const headers = data[0];
-            locations = [];
-
-            for (let i = 1; i < data.length; i++) {
-                const row = data[i];
-                if (row.length < headers.length) continue;
-
-                const item = {};
-                headers.forEach((header, index) => {
-                    item[header] = row[index];
-                });
-
-                // Filtering Logic: Check Lat/Long exist
-                if (item.Lat && item.Long) {
-                    locations.push(item);
-                }
-            }
-            
-            displayLocations();
-        } catch (error) {
-            console.error(error);
-            document.getElementById('locations-container').innerHTML = 
-                '<div class="error">فشل تحميل المواقع. تأكد من رابط CSV.</div>';
-        }
-    }
-
-    function displayLocations() {
-        const container = document.getElementById('locations-container');
-        if (locations.length === 0) {
-            container.innerHTML = '<div class="error">لا توجد مواقع متاحة</div>';
-            return;
-        }
-        
-        container.innerHTML = '';
-        locations.forEach((location, index) => {
-            const div = document.createElement('div');
-            div.className = 'location-item';
-            div.innerHTML = `
-                <div class="location-name">${location.VILLAGE_NA || 'بدون اسم'}</div>
-                <div class="location-coords">
-                    📍 ${parseFloat(location.Lat).toFixed(6)}, ${parseFloat(location.Long).toFixed(6)}
+        function displayLocations() {
+            const container = document.getElementById('locations-container');
+            container.innerHTML = locations.map((l, i) => `
+                <div class="location-item ${measuredIds.includes(l.ID) ? 'measured' : ''}" id="loc-${i}">
+                    <div class="location-name"><span class="check-mark">✓</span> ${l.VILLAGE_NA || 'بدون اسم'}</div>
+                    <div class="asset-info">
+                        <span><span class="info-tag">القطر:</span> ${l.D || '-'}</span>
+                        <span><span class="info-tag">الخامة:</span> ${l.MATERIAL || '-'}</span>
+                    </div>
+                    <div class="location-coords">📍 ${l.Lat}, ${l.Long}</div>
+                    <div class="action-buttons">
+                        <button class="btn btn-maps" onclick="openMaps('saved', ${i})">🗺️ خرائط</button>
+                        <button class="btn btn-form" onclick="openForm('saved', ${i})">📊 تسجيل</button>
+                    </div>
                 </div>
-                <div class="action-buttons">
-                    <button class="btn btn-maps" onclick="openMaps('saved', ${index})">🗺️ فتح في خرائط جوجل</button>
-                    <button class="btn btn-form" onclick="openForm('saved', ${index})">📊 تسجيل قياس</button>
-                </div>
-            `;
-            
-            div.addEventListener('click', (e) => {
-                if (!e.target.classList.contains('btn')) {
-                    selectLocation(index);
-                }
+            `).join('');
+            document.querySelectorAll('.location-item').forEach((div, i) => {
+                div.onclick = (e) => { if(!e.target.closest('.btn')) selectLocation(i); };
             });
-            container.appendChild(div);
-        });
-    }
-
-    function selectLocation(index) {
-        document.querySelectorAll('.location-item').forEach(item => item.classList.remove('selected'));
-        const items = document.querySelectorAll('.location-item');
-        if(items[index]) items[index].classList.add('selected');
-        selectedLocationIndex = index;
-    }
-
-    // ========== SECTION NAVIGATION ==========
-    function showSection(section) {
-        document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
-        
-        if (section === 'saved') {
-            document.getElementById('saved-section').classList.add('active');
-            document.querySelectorAll('.option-btn')[0].classList.add('active');
-            if (locations.length === 0) loadLocations();
-        } else if (section === 'gps') {
-            document.getElementById('gps-section').classList.add('active');
-            document.querySelectorAll('.option-btn')[1].classList.add('active');
-        } else if (section === 'map') {
-            document.getElementById('map-section').classList.add('active');
-            document.querySelectorAll('.option-btn')[2].classList.add('active');
-            initMap();
         }
-    }
 
-    // ========== GPS ==========
-    function getCurrentLocation() {
-        const statusDiv = document.getElementById('gps-status');
-        const resultDiv = document.getElementById('gps-result');
-        
-        if (!navigator.geolocation) {
-            statusDiv.innerHTML = '<div class="error">المتصفح لا يدعم تحديد الموقع</div>';
-            return;
+        function selectLocation(i) {
+            document.querySelectorAll('.location-item').forEach(el => el.classList.remove('selected'));
+            document.getElementById(`loc-${i}`).classList.add('selected');
         }
-        
-        statusDiv.innerHTML = '<div class="loading">جاري تحديد الموقع...</div>';
-        navigator.geolocation.getCurrentPosition(
-            (position) => {
-                gpsCoords = { lat: position.coords.latitude, lng: position.coords.longitude };
-                statusDiv.innerHTML = '<div class="success">تم تحديد الموقع بنجاح</div>';
-                document.getElementById('gps-coords').textContent = `📍 ${gpsCoords.lat.toFixed(6)}, ${gpsCoords.lng.toFixed(6)}`;
-                resultDiv.style.display = 'block';
-            },
-            (error) => {
-                statusDiv.innerHTML = `<div class="error">فشل تحديد الموقع</div>`;
-            }
-        );
-    }
 
-    // ========== MAP ==========
-    function initMap() {
-        if (map) {
-            setTimeout(() => map.invalidateSize(), 100);
-            return;
+        function showSection(s) {
+            document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
+            if (!s) return;
+            document.getElementById(`${s}-section`).classList.add('active');
+            if (s === 'saved' && locations.length === 0) loadLocations();
+            if (s === 'map') initMap();
         }
-        
-        map = L.map('map').setView([30.0444, 31.2357], 6);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap'
-        }).addTo(map);
-        
-        marker = L.marker([30.0444, 31.2357], { draggable: true }).addTo(map);
-        mapCoords = { lat: 30.0444, lng: 31.2357 };
-        updateMapCoords();
-        
-        map.on('click', (e) => {
-            marker.setLatLng(e.latlng);
-            mapCoords = { lat: e.latlng.lat, lng: e.latlng.lng };
-            updateMapCoords();
-        });
-        
-        marker.on('dragend', (e) => {
-            const pos = marker.getLatLng();
-            mapCoords = { lat: pos.lat, lng: pos.lng };
-            updateMapCoords();
-        });
-    }
 
-    function updateMapCoords() {
-        document.getElementById('map-coords').textContent = `📍 ${mapCoords.lat.toFixed(6)}, ${mapCoords.lng.toFixed(6)}`;
-    }
-
-    // ========== GOOGLE MAPS LINK GENERATOR ==========
-    function generateMapsLink(lat, lng) {
-        return `https://www.google.com/maps?q=lat,lng${lat},${lng}`;
-    }
-
-    // ========== NAVIGATION & FORM ==========
-    function openMaps(source, index) {
-        let lat, lng;
-        if (source === 'saved') {
-            lat = locations[index].Lat;
-            lng = locations[index].Long;
-        } else if (source === 'gps') {
-            if (!gpsCoords) return;
-            lat = gpsCoords.lat; lng = gpsCoords.lng;
-        } else if (source === 'map') {
-            if (!mapCoords) return;
-            lat = mapCoords.lat; lng = mapCoords.lng;
+        function initMap() {
+            if (map) { setTimeout(() => map.invalidateSize(), 200); return; }
+            map = L.map('map').setView([30.0444, 31.2357], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+            marker = L.marker([30.0444, 31.2357], {draggable: true}).addTo(map);
+            mapCoords = {lat: 30.0444, lng: 31.2357};
+            const upd = () => {
+                const p = marker.getLatLng(); mapCoords = {lat: p.lat, lng: p.lng};
+                document.getElementById('map-coords').innerText = `📍 ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`;
+            };
+            map.on('click', e => { marker.setLatLng(e.latlng); upd(); });
+            marker.on('dragend', upd);
+            upd();
+            setTimeout(() => map.invalidateSize(), 300);
         }
-        window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
-    }
 
-    function openForm(source, index) {
-        let lat, lng, name, assetId = "";
-        
-        if (source === 'saved') {
-            const loc = locations[index];
-            lat = loc.Lat;
-            lng = loc.Long;
-            name = loc.VILLAGE_NA || "";
-            assetId = loc.ID || "";
-        } else if (source === 'gps') {
-            if (!gpsCoords) return;
-            lat = gpsCoords.lat;
-            lng = gpsCoords.lng;
-            name = document.getElementById('gps-name').value.trim();
-        } else if (source === 'map') {
-            if (!mapCoords) return;
-            lat = mapCoords.lat;
-            lng = mapCoords.lng;
-            name = document.getElementById('map-name').value.trim();
+        function getCurrentLocation() {
+            const st = document.getElementById('gps-status');
+            st.innerHTML = "جاري التحديد...";
+            navigator.geolocation.getCurrentPosition(p => {
+                gpsCoords = {lat: p.coords.latitude, lng: p.coords.longitude};
+                st.innerHTML = "تم التحديد ✅";
+                document.getElementById('gps-coords').innerText = `📍 ${gpsCoords.lat.toFixed(6)}, ${gpsCoords.lng.toFixed(6)}`;
+                document.getElementById('gps-result').style.display = 'block';
+            }, () => st.innerHTML = "فشل التحديد ❌");
         }
-        
-        pendingFormData = {
-            locationLink: generateMapsLink(lat, lng),
-            name: name,
-            asset: assetId
-        };
-        
-        document.getElementById('confirmation-modal').classList.add('active');
-    }
 
-    function confirmForm() {
-        if (!pendingFormData) return;
-        
-        const url = new URL(FORM_URL);
-        url.searchParams.set(FORM_LOCATION_FIELD, pendingFormData.locationLink);
-        url.searchParams.set(FORM_NAME_FIELD, pendingFormData.name);
-        url.searchParams.set(FORM_ASSET_FIELD, pendingFormData.asset);
-        
-        window.open(url.toString(), '_blank');
-        closeModal();
-    }
+        function openMaps(src, i) {
+            let lat, lng;
+            if (src === 'saved') { lat = locations[i].Lat; lng = locations[i].Long; }
+            else if (src === 'gps') { lat = gpsCoords.lat; lng = gpsCoords.lng; }
+            else { lat = mapCoords.lat; lng = mapCoords.lng; }
+            window.open(`https://www.google.com/maps?q=${lat},${lng}`, '_blank');
+        }
 
-    function closeModal() {
-        document.getElementById('confirmation-modal').classList.remove('active');
-        pendingFormData = null;
-    }
-</script>
+        function openForm(src, i) {
+            let lat, lng, name = "", id = "";
+            if (src === 'saved') {
+                const l = locations[i]; lat = l.Lat; lng = l.Long; name = l.VILLAGE_NA; id = l.ID;
+                if (id && !measuredIds.includes(id)) {
+                    measuredIds.push(id);
+                    localStorage.setItem('measured_locations', JSON.stringify(measuredIds));
+                    document.getElementById(`loc-${i}`).classList.add('measured');
+                }
+            } else if (src === 'gps') { lat = gpsCoords.lat; lng = gpsCoords.lng; name = document.getElementById('gps-name').value; }
+            else { lat = mapCoords.lat; lng = mapCoords.lng; name = document.getElementById('map-name').value; }
+
+            pendingData = {
+                link: `https://www.google.com/maps?q=${lat},${lng}`,
+                name: name || "",
+                asset: id || ""
+            };
+            document.getElementById('modal-info').innerText = name ? `الموقع: ${name}` : "موقع غير مسمى";
+            document.getElementById('confirmation-modal').classList.add('active');
+        }
+
+        function confirmForm() {
+            const u = new URL(FORM_BASE_URL);
+            u.searchParams.set(FIELDS.loc, pendingData.link);
+            u.searchParams.set(FIELDS.name, pendingData.name);
+            u.searchParams.set(FIELDS.asset, pendingData.asset);
+            window.open(u.toString(), '_blank');
+            closeModal();
+        }
+
+        function closeModal() { document.getElementById('confirmation-modal').classList.remove('active'); }
+    </script>
 </body>
 </html>

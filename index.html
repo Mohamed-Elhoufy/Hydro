@@ -1,641 +1,179 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تسجيل قياسات الشبكة</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل قياسات الشبكة</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
-            direction: rtl;
-        }
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-
-        .header {
-            text-align: center;
-            color: white;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 10px;
-        }
-
-        .header p {
-            font-size: 14px;
-            opacity: 0.9;
-        }
-
-        .card {
-            background: white;
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-
-        .option-btn {
-            width: 100%;
-            padding: 15px;
-            margin-bottom: 15px;
-            border: 2px solid #667eea;
-            background: white;
-            color: #667eea;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .option-btn:hover {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-        }
-
-        .option-btn.active {
-            background: #667eea;
-            color: white;
-        }
-
-        .content-section {
-            display: none;
-            animation: fadeIn 0.3s;
-        }
-
-        .content-section.active {
-            display: block;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .location-item {
-            padding: 15px;
-            border: 1px solid #e0e0e0;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .location-item:hover {
-            background: #f5f5f5;
-            border-color: #667eea;
-        }
-
-        .location-item.selected {
-            background: #f0f4ff;
-            border-color: #667eea;
-            border-width: 2px;
-        }
-
-        .location-name {
-            font-weight: bold;
-            font-size: 16px;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .location-coords {
-            font-size: 12px;
-            color: #666;
-            display: none;
-        }
-
-        .location-item.selected .location-coords {
-            display: block;
-        }
-
-        .action-buttons {
-            display: none;
-            margin-top: 15px;
-            gap: 10px;
-        }
-
-        .location-item.selected .action-buttons {
-            display: flex;
-        }
-
-        .btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .btn-maps {
-            background: #34a853;
-            color: white;
-        }
-
-        .btn-maps:hover {
-            background: #2d8e47;
-        }
-
-        .btn-form {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-form:hover {
-            background: #5568d3;
-        }
-
-        .input-group {
-            margin-bottom: 15px;
-        }
-
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #333;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s;
-        }
-
-        .input-group input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        #map {
-            height: 400px;
-            border-radius: 10px;
-            margin-bottom: 15px;
-        }
-
-        .coords-display {
-            background: #f5f5f5;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 14px;
-            text-align: center;
-            color: #666;
-        }
-
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #666;
-        }
-
-        .error {
-            background: #ffebee;
-            color: #c62828;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .success {
-            background: #e8f5e9;
-            color: #2e7d32;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .back-btn {
-            background: #f5f5f5;
-            color: #666;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            margin-bottom: 15px;
-            font-size: 14px;
-        }
-
-        .back-btn:hover {
-            background: #e0e0e0;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            z-index: 9999;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
-            display: flex;
-        }
-
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 400px;
-            text-align: center;
-        }
-
-        .modal-content h3 {
-            margin-bottom: 20px;
-            color: #333;
-        }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-        }
-
-        .modal-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .modal-btn-yes {
-            background: #667eea;
-            color: white;
-        }
-
-        .modal-btn-no {
-            background: #f5f5f5;
-            color: #666;
-        }
-    </style>
+<style>
+body {font-family: Arial; background:#667eea; padding:20px;}
+.container {max-width:600px;margin:auto;}
+.card {background:#fff;padding:20px;border-radius:15px;margin-bottom:15px;}
+.btn {padding:10px;border:none;border-radius:8px;cursor:pointer;}
+.location-item {padding:10px;border:1px solid #ccc;margin-bottom:10px;cursor:pointer;}
+.selected {background:#e7f0ff;}
+#map {height:300px;margin-top:10px;}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>📊 تسجيل قياسات الشبكة</h1>
-            <p>اختر طريقة تحديد الموقع</p>
-        </div>
 
-        <div class="card">
-            <button class="option-btn" onclick="showSection('saved')">
-                📋 المواقع المحفوظة
-            </button>
-            <button class="option-btn" onclick="showSection('gps')">
-                📍 استخدام الموقع الحالي (GPS)
-            </button>
-            <button class="option-btn" onclick="showSection('map')">
-                🗺️ اختيار موقع من الخريطة
-            </button>
-        </div>
+<div class="container">
 
-        <!-- Saved Locations Section -->
-        <div id="saved-section" class="content-section">
-            <div class="card">
-                <button class="back-btn" onclick="showSection(null)">← رجوع</button>
-                <h2 style="margin-bottom: 15px;">المواقع المحفوظة</h2>
-                <div id="locations-container">
-                    <div class="loading">جاري تحميل المواقع...</div>
-                </div>
-            </div>
-        </div>
+<div class="card">
+<button onclick="show('saved')">📋 المواقع</button>
+<button onclick="show('gps')">📍 GPS</button>
+<button onclick="show('map')">🗺️ خريطة</button>
+</div>
 
-        <!-- GPS Section -->
-        <div id="gps-section" class="content-section">
-            <div class="card">
-                <button class="back-btn" onclick="showSection(null)">← رجوع</button>
-                <h2 style="margin-bottom: 15px;">الموقع الحالي (GPS)</h2>
-                <div id="gps-status"></div>
-                <button class="btn btn-form" style="width: 100%; margin-bottom: 15px;" onclick="getCurrentLocation()">
-                    📍 تحديد موقعي الحالي
-                </button>
-                <div id="gps-result" style="display: none;">
-                    <div class="coords-display" id="gps-coords"></div>
-                    <div class="input-group">
-                        <label>اسم الموقع *</label>
-                        <input type="text" id="gps-name" placeholder="أدخل اسم الموقع">
-                    </div>
-                    <div class="action-buttons" style="display: flex;">
-                        <button class="btn btn-maps" onclick="openMaps('gps')">🗺️ فتح في خرائط جوجل</button>
-                        <button class="btn btn-form" onclick="openForm('gps')">📊 تسجيل قياس</button>
-                    </div>
-                </div>
-            </div>
-        </div>
+<div id="saved" class="card" style="display:none;">
+<div id="list">جاري التحميل...</div>
+</div>
 
-        <!-- Map Section -->
-        <div id="map-section" class="content-section">
-            <div class="card">
-                <button class="back-btn" onclick="showSection(null)">← رجوع</button>
-                <h2 style="margin-bottom: 15px;">اختيار موقع من الخريطة</h2>
-                <div id="map"></div>
-                <div class="coords-display" id="map-coords">انقر على الخريطة أو اسحب العلامة</div>
-                <div class="input-group">
-                    <label>اسم الموقع *</label>
-                    <input type="text" id="map-name" placeholder="أدخل اسم الموقع">
-                </div>
-                <div class="action-buttons" style="display: flex;">
-                    <button class="btn btn-maps" onclick="openMaps('map')">🗺️ فتح في خرائط جوجل</button>
-                    <button class="btn btn-form" onclick="openForm('map')">📊 تسجيل قياس</button>
-                </div>
-            </div>
-        </div>
-    </div>
+<div id="gps" class="card" style="display:none;">
+<button onclick="getGPS()">تحديد الموقع</button>
+<div id="gpsResult"></div>
+<input id="gpsName" placeholder="اسم (اختياري)">
+<button onclick="openForm('gps')">تسجيل</button>
+</div>
 
-    <!-- Confirmation Modal -->
-    <div id="confirmation-modal" class="modal">
-        <div class="modal-content">
-            <h3>تأكيد التسجيل</h3>
-            <p>هل تريد تسجيل القياس لهذا الموقع؟</p>
-            <div class="modal-buttons">
-                <button class="modal-btn modal-btn-yes" onclick="confirmForm()">نعم</button>
-                <button class="modal-btn modal-btn-no" onclick="closeModal()">إلغاء</button>
-            </div>
-        </div>
-    </div>
+<div id="map" class="card" style="display:none;">
+<div id="mapid"></div>
+<input id="mapName" placeholder="اسم (اختياري)">
+<button onclick="openForm('map')">تسجيل</button>
+</div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // ========== CONFIGURATION ==========
-        const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVj648OXVdiG_IMMga925QI843xQnOlmrwCwcIC9bIgfiRs59OQZM2MoTjwYjJ3ce5wDD8uOh0vMOF/pub?output=csv';
-        const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSceQG8YNNURsfxMkEYPKjSpxHKTkAGrbttYwSdW6o2jO_vXoA/viewform?usp=header';
-        const FORM_LOCATION_FIELD = 'entry.1722461871'; // Replace with actual entry ID
-        const FORM_NAME_FIELD = 'entry.103117482'; // Replace with actual entry ID
-        // ========== STATE ==========
-        let locations = [];
-        let selectedLocation = null;
-        let gpsCoords = null;
-        let mapCoords = null;
-        let map = null;
-        let marker = null;
-        let pendingFormData = null;
+</div>
 
-        // ========== INITIALIZATION ==========
-        async function loadLocations() {
-            try {
-                const response = await fetch(CSV_URL);
-                const csvText = await response.text();
-                
-                const lines = csvText.split('\n');
-                const headers = lines[0].split(',').map(h => h.trim());
-                
-                locations = [];
-                for (let i = 1; i < lines.length; i++) {
-                    if (!lines[i].trim()) continue;
-                    
-                    const values = lines[i].split(',').map(v => v.trim());
-                    const location = {};
-                    
-                    headers.forEach((header, index) => {
-                        location[header] = values[index];
-                    });
-                    
-                    if (location.latitude && location.longitude) {
-                        locations.push(location);
-                    }
-                }
-                
-                displayLocations();
-            } catch (error) {
-                document.getElementById('locations-container').innerHTML = 
-                    '<div class="error">فشل تحميل المواقع. تأكد من رابط CSV.</div>';
-            }
-        }
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-        function displayLocations() {
-            const container = document.getElementById('locations-container');
-            
-            if (locations.length === 0) {
-                container.innerHTML = '<div class="error">لا توجد مواقع متاحة</div>';
-                return;
-            }
-            
-            container.innerHTML = '';
-            
-            locations.forEach((location, index) => {
-                const div = document.createElement('div');
-                div.className = 'location-item';
-                div.innerHTML = `
-                    <div class="location-name">${location.VILLAGE_NA || 'موقع ' + (index + 1)}</div>
-                    <div class="location-coords">
-                        📍 ${parseFloat(location.latitude).toFixed(6)}, ${parseFloat(location.longitude).toFixed(6)}
-                    </div>
-                    <div class="action-buttons">
-                        <button class="btn btn-maps" onclick="openMaps('saved', ${index})">🗺️ فتح في خرائط جوجل</button>
-                        <button class="btn btn-form" onclick="openForm('saved', ${index})">📊 تسجيل قياس</button>
-                    </div>
-                `;
-                
-                div.addEventListener('click', (e) => {
-                    if (!e.target.classList.contains('btn')) {
-                        selectLocation(index);
-                    }
-                });
-                
-                container.appendChild(div);
-            });
-        }
+<script>
+// CONFIG
+const CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vRVj648OXVdiG_IMMga925QI843xQnOlmrwCwcIC9bIgfiRs59OQZM2MoTjwYjJ3ce5wDD8uOh0vMOF/pub?output=csv';
+const FORM_URL = 'https://docs.google.com/forms/d/e/1FAIpQLSceQG8YNNURsfxMkEYPKjSpxHKTkAGrbttYwSdW6o2jO_vXoA/viewform?usp=publish-editor';
+const FORM_LOCATION_FIELD = 'entry.1722461871';
+const FORM_NAME_FIELD = 'entry.103117482';
+const FORM_ASSET_FIELD = 'entry.880995171';
 
-        function selectLocation(index) {
-            document.querySelectorAll('.location-item').forEach(item => {
-                item.classList.remove('selected');
-            });
-            
-            document.querySelectorAll('.location-item')[index].classList.add('selected');
-            selectedLocation = index;
-        }
+// STATE
+let locations = [];
+let gpsCoords=null;
+let mapCoords=null;
+let map, marker;
+let selectedIndex=null;
 
-        // ========== SECTION NAVIGATION ==========
-        function showSection(section) {
-            document.querySelectorAll('.content-section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.option-btn').forEach(btn => btn.classList.remove('active'));
-            
-            if (section === 'saved') {
-                document.getElementById('saved-section').classList.add('active');
-                document.querySelectorAll('.option-btn')[0].classList.add('active');
-                if (locations.length === 0) loadLocations();
-            } else if (section === 'gps') {
-                document.getElementById('gps-section').classList.add('active');
-                document.querySelectorAll('.option-btn')[1].classList.add('active');
-            } else if (section === 'map') {
-                document.getElementById('map-section').classList.add('active');
-                document.querySelectorAll('.option-btn')[2].classList.add('active');
-                initMap();
-            }
-        }
+// LOAD CSV
+async function loadCSV(){
+let res = await fetch(CSV_URL);
+let text = await res.text();
 
-        // ========== GPS ==========
-        function getCurrentLocation() {
-            const statusDiv = document.getElementById('gps-status');
-            const resultDiv = document.getElementById('gps-result');
-            
-            if (!navigator.geolocation) {
-                statusDiv.innerHTML = '<div class="error">المتصفح لا يدعم تحديد الموقع</div>';
-                return;
-            }
-            
-            statusDiv.innerHTML = '<div class="loading">جاري تحديد الموقع...</div>';
-            
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    gpsCoords = {
-                        lat: position.coords.latitude,
-                        lng: position.coords.longitude
-                    };
-                    
-                    statusDiv.innerHTML = '<div class="success">تم تحديد الموقع بنجاح</div>';
-                    document.getElementById('gps-coords').textContent = 
-                        `📍 ${gpsCoords.lat.toFixed(6)}, ${gpsCoords.lng.toFixed(6)}`;
-                    resultDiv.style.display = 'block';
-                },
-                (error) => {
-                    let message = 'فشل تحديد الموقع';
-                    if (error.code === 1) message = 'تم رفض الإذن بالوصول للموقع';
-                    else if (error.code === 2) message = 'الموقع غير متوفر';
-                    else if (error.code === 3) message = 'انتهت مهلة الطلب';
-                    
-                    statusDiv.innerHTML = `<div class="error">${message}</div>`;
-                }
-            );
-        }
+let lines = text.split('\n');
+let headers = lines[0].split(',').map(h=>h.trim().replace(/"/g,''));
 
-        // ========== MAP ==========
-        function initMap() {
-            if (map) return;
-            
-            map = L.map('map').setView([30.0444, 31.2357], 6);
-            
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                attribution: '© OpenStreetMap contributors'
-            }).addTo(map);
-            
-            marker = L.marker([30.0444, 31.2357], { draggable: true }).addTo(map);
-            
-            mapCoords = { lat: 30.0444, lng: 31.2357 };
-            updateMapCoords();
-            
-            map.on('click', (e) => {
-                marker.setLatLng(e.latlng);
-                mapCoords = { lat: e.latlng.lat, lng: e.latlng.lng };
-                updateMapCoords();
-            });
-            
-            marker.on('dragend', (e) => {
-                const pos = marker.getLatLng();
-                mapCoords = { lat: pos.lat, lng: pos.lng };
-                updateMapCoords();
-            });
-        }
+for(let i=1;i<lines.length;i++){
+if(!lines[i]) continue;
 
-        function updateMapCoords() {
-            document.getElementById('map-coords').textContent = 
-                `📍 ${mapCoords.lat.toFixed(6)}, ${mapCoords.lng.toFixed(6)}`;
-        }
+let values = lines[i].split(',').map(v=>v.trim().replace(/"/g,''));
+let obj={};
 
-        // ========== GOOGLE MAPS ==========
-        function openMaps(source, index) {
-            let lat, lng;
-            
-            if (source === 'saved') {
-                const location = locations[index];
-                lat = location.latitude;
-                lng = location.longitude;
-            } else if (source === 'gps') {
-                if (!gpsCoords) return;
-                lat = gpsCoords.lat;
-                lng = gpsCoords.lng;
-            } else if (source === 'map') {
-                if (!mapCoords) return;
-                lat = mapCoords.lat;
-                lng = mapCoords.lng;
-            }
-            
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
-            window.open(url, '_blank');
-        }
+headers.forEach((h,idx)=> obj[h]=values[idx]);
 
-        // ========== GOOGLE FORM ==========
-        function openForm(source, index) {
-            let lat, lng, name;
-            
-            if (source === 'saved') {
-                const location = locations[index];
-                lat = location.latitude;
-                lng = location.longitude;
-                name = location.VILLAGE_NA;
-            } else if (source === 'gps') {
-                if (!gpsCoords) return;
-                name = document.getElementById('gps-name').value.trim();
-                if (!name) {
-                    alert('الرجاء إدخال اسم الموقع');
-                    return;
-                }
-                lat = gpsCoords.lat;
-                lng = gpsCoords.lng;
-            } else if (source === 'map') {
-                if (!mapCoords) return;
-                name = document.getElementById('map-name').value.trim();
-                if (!name) {
-                    alert('الرجاء إدخال اسم الموقع');
-                    return;
-                }
-                lat = mapCoords.lat;
-                lng = mapCoords.lng;
-            }
-            
-            pendingFormData = {
-                locationLink: `https://www.google.com/maps?q=${lat},${lng}`,
-                name: name
-            };
-            
-            document.getElementById('confirmation-modal').classList.add('active');
-        }
+if(obj.Lat && obj.Long) locations.push(obj);
+}
 
-        function confirmForm() {
-            if (!pendingFormData) return;
-            
-            const formUrl = `${FORM_URL}?${FORM_LOCATION_FIELD}=${encodeURIComponent(pendingFormData.locationLink)}&${FORM_NAME_FIELD}=${encodeURIComponent(pendingFormData.name)}`;
-            
-            window.open(formUrl, '_blank');
-            closeModal();
-        }
+render();
+}
 
-        function closeModal() {
-            document.getElementById('confirmation-modal').classList.remove('active');
-            pendingFormData = null;
-        }
-    </script>
+// RENDER
+function render(){
+let html='';
+locations.forEach((l,i)=>{
+html+=`
+<div class="location-item" onclick="select(${i})">
+<b>عداية - ${l.VILLAGE_NA || ''}</b><br>
+${l.Lat}, ${l.Long}
+</div>`;
+});
+document.getElementById('list').innerHTML=html;
+}
+
+// SELECT
+function select(i){
+selectedIndex=i;
+document.querySelectorAll('.location-item').forEach(e=>e.classList.remove('selected'));
+document.querySelectorAll('.location-item')[i].classList.add('selected');
+}
+
+// GPS
+function getGPS(){
+navigator.geolocation.getCurrentPosition(p=>{
+gpsCoords={lat:p.coords.latitude,lng:p.coords.longitude};
+document.getElementById('gpsResult').innerHTML=`${gpsCoords.lat}, ${gpsCoords.lng}`;
+});
+}
+
+// MAP
+function initMap(){
+if(map) return;
+map=L.map('mapid').setView([31.04,31.37],13);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+marker=L.marker([31.04,31.37],{draggable:true}).addTo(map);
+
+map.on('click',e=>{
+marker.setLatLng(e.latlng);
+mapCoords=e.latlng;
+});
+
+marker.on('dragend',e=>{
+mapCoords=e.target.getLatLng();
+});
+}
+
+// OPEN FORM
+function openForm(type){
+let lat,lng,name='',asset='';
+
+if(type==='saved'){
+let l=locations[selectedIndex];
+lat=l.Lat; lng=l.Long;
+name=l.VILLAGE_NA||'';
+asset=l.ID||'';
+}
+else if(type==='gps'){
+lat=gpsCoords.lat; lng=gpsCoords.lng;
+name=document.getElementById('gpsName').value||'';
+}
+else{
+lat=mapCoords.lat; lng=mapCoords.lng;
+name=document.getElementById('mapName').value||'';
+}
+
+let link=`https://www.google.com/maps?q=${lat},${lng}`;
+
+let url = `${FORM_URL}?${FORM_LOCATION_FIELD}=${encodeURIComponent(link)}`
++ `&${FORM_NAME_FIELD}=${encodeURIComponent(name)}`
++ `&${FORM_ASSET_FIELD}=${encodeURIComponent(asset)}`;
+
+window.open(url,'_blank');
+}
+
+// NAV
+function show(s){
+document.getElementById('saved').style.display='none';
+document.getElementById('gps').style.display='none';
+document.getElementById('map').style.display='none';
+
+if(s==='saved') document.getElementById('saved').style.display='block';
+if(s==='gps') document.getElementById('gps').style.display='block';
+if(s==='map'){document.getElementById('map').style.display='block';initMap();}
+
+if(locations.length===0) loadCSV();
+}
+
+</script>
 </body>
 </html>
